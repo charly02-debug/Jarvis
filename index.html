@@ -1,1 +1,138 @@
 
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>J.A.R.V.I.S.</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:radial-gradient(circle at center,#102e49,#050b15 75%);
+ color:#d9f5ff;font-family:Arial,sans-serif;
+ min-height:100vh;text-align:center;padding:25px 15px;
+}
+h1{letter-spacing:9px;color:#72dfff;text-shadow:0 0 20px #20aaff}
+.sub{color:#78a9c4;letter-spacing:3px;font-size:12px}
+.orb{
+ width:190px;height:190px;border-radius:50%;
+ margin:45px auto 25px;
+ border:2px solid #66dfff;
+ box-shadow:0 0 25px #19baff,inset 0 0 35px #168acb;
+ display:grid;place-items:center;
+ animation:pulse 3s infinite;
+}
+.orb span{font-size:65px;color:#8beaff}
+@keyframes pulse{50%{box-shadow:0 0 55px #19baff,inset 0 0 55px #168acb}}
+button{
+ background:#087eae;color:white;border:1px solid #60d9ff;
+ padding:13px 19px;border-radius:9px;margin:6px;
+ cursor:pointer;font-size:15px;
+}
+button:hover{background:#12a8d4}
+input{
+ width:min(85%,450px);padding:14px;border-radius:8px;
+ border:1px solid #46bce8;background:#091727;color:white;
+}
+#messages{
+ max-width:550px;margin:25px auto;text-align:left;
+ background:#0b1a2a;border:1px solid #24516d;
+ border-radius:12px;padding:18px;min-height:100px;
+}
+.message{padding:9px;border-bottom:1px solid #17364d}
+footer{color:#507a91;font-size:11px;margin-top:35px}
+</style>
+</head>
+<body>
+<p class="sub">PERSONAL INTELLIGENCE SYSTEM</p>
+<h1>J.A.R.V.I.S.</h1>
+<p id="status">SYSTÈME EN LIGNE</p>
+
+<div class="orb"><span>◉</span></div>
+
+<h3 id="label">EN ATTENTE DE COMMANDE</h3>
+<button onclick="listen()">🎙 PARLER À JARVIS</button>
+<button onclick="speak('Bonjour. Je suis JARVIS, votre assistant personnel.')">🔊 TESTER LA VOIX</button>
+
+<div>
+ <p><input id="question" placeholder="Écris un message à JARVIS..."></p>
+ <button onclick="send()">ENVOYER</button>
+</div>
+
+<div id="messages">
+ <div class="message">JARVIS : Bonjour. Tous les systèmes sont prêts.</div>
+</div>
+
+<footer>J.A.R.V.I.S. — PROTOTYPE 1.0</footer>
+
+<script>
+function speak(text){
+ if(!('speechSynthesis' in window))return;
+ speechSynthesis.cancel();
+ let voice=new SpeechSynthesisUtterance(text);
+ voice.lang='fr-FR';
+ speechSynthesis.speak(voice);
+}
+function add(who,text){
+ let div=document.createElement('div');
+ div.className='message';
+ div.textContent=who+' : '+text;
+ document.getElementById('messages').appendChild(div);
+}
+function reply(text){
+ let q=text.toLowerCase();
+ let answer;
+ if(q.includes('bonjour')||q.includes('salut'))
+ answer='Bonjour ! Heureux de vous assister.';
+ else if(q.includes('heure'))
+ answer='Il est '+new Date().toLocaleTimeString('fr-FR')+'.';
+ else if(q.includes('date'))
+ answer='Nous sommes le '+new Date().toLocaleDateString('fr-FR')+'.';
+ else if(q.includes('qui es-tu'))
+ answer='Je suis JARVIS, votre assistant personnel.';
+ else if(q.includes('merci'))
+ answer='Toujours à votre service.';
+ else
+ answer='Demande reçue. Mon cerveau intelligent sera connecté lors de la prochaine étape de développement.';
+ add('JARVIS',answer);
+ speak(answer);
+}
+function send(){
+ let input=document.getElementById('question');
+ let text=input.value.trim();
+ if(!text)return;
+ add('VOUS',text);
+ input.value='';
+ reply(text);
+}
+function listen(){
+ const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!Recognition){
+ alert('Reconnaissance vocale non disponible. Essayez Google Chrome.');
+ return;
+ }
+ let rec=new Recognition();
+ rec.lang='fr-FR';
+ rec.onstart=()=>{
+ document.getElementById('status').textContent='ÉCOUTE EN COURS';
+ document.getElementById('label').textContent='JE VOUS ÉCOUTE';
+ };
+ rec.onresult=e=>{
+ let text=e.results[0][0].transcript;
+ add('VOUS',text);
+ reply(text);
+ };
+ rec.onerror=()=>alert('Vérifiez les autorisations du microphone.');
+ rec.onend=()=>{
+ document.getElementById('status').textContent='SYSTÈME EN LIGNE';
+ document.getElementById('label').textContent='EN ATTENTE DE COMMANDE';
+ };
+ rec.start();
+}
+document.getElementById('question').addEventListener('keydown',e=>{
+ if(e.key==='Enter')send();
+});
+</script>
+</body>
+</html>
+
